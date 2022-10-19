@@ -26,8 +26,13 @@ void read_file(char *text, char *filename) {
 }
 
 void write_text(char *text, char *filename) {
-    FILE *wdfd = fopen(filename, "a");
-    fprintf(wdfd, "%s\n", text);
+    FILE *wdfd = fopen(filename, "ab");
+    int n = strlen(text);
+    for(int i = 0; i < n; i++) {
+	int c = text[i];
+	
+	fputc(c, wdfd);
+    }
     fclose(wdfd);
 }
 
@@ -83,11 +88,16 @@ void sendimg(int newsock, char *s) {
 
 void write_to_text(int newsock, char* buf, char *filename) {
     buf = strtok(buf, "\n");
-    while(buf != NULL && strncmp(buf, "text", 4) != 0) {
+    bool istext = false;
+    while(buf != NULL) {
+	if(strncmp(buf, "text", 4) == 0)
+	    istext = true;
+        if(istext)
+	    write_text(&buf[4], filename);
         buf = strtok(NULL, "\n");
     }
-    write_text(buf, filename);
     char response[512];
+    memset(response, 0, sizeof(response));
     read_file(response, "post_head");
     strcat(response, "\r\n");
     int k;
@@ -111,8 +121,10 @@ void get(int newsock, char *buf) {
 
 void post(int newsock, char *buf) {
     char s[512];
+    printf("handle post\n");
     sscanf(buf, "%s", s);
-    if(strcmp(s, "/Text") == 0) {
+    if(strncmp(s, "/Text", 5) == 0) {
+	printf("try to write\n");
         write_to_text(newsock, buf, &s[1]);
     }
 }
