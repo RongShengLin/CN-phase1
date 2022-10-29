@@ -1,5 +1,6 @@
-# CN-phase1  
-##　Compile  
+# CN-phase1    
+This is for CN phase1
+## Compile  
 ### use "gcc server.c -o server" to compile  
 ## Run  
 ### use "./server" to run
