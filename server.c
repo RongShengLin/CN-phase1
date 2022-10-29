@@ -30,7 +30,7 @@ void write_text(char *text, char *filename) {
     int n = strlen(text);
     for(int i = 0; i < n; i++) {
 	int c = text[i];
-	
+
 	fputc(c, wdfd);
     }
     fclose(wdfd);
@@ -53,19 +53,19 @@ void sendhtml(int newsock) {
 
 int read_img(char *text, char *filename) {
     FILE *imgfd = fopen(filename, "rb");
-    FILE *textfd = fopen("test.png", "w");
+    //FILE *textfd = fopen("test.png", "w");
     int c;
     int n = strlen(text);
     while((c = fgetc(imgfd)) != EOF) {
 	text[n] = c;
 	text[n + 1] = '\0';
 	n++;
-	fputc(c, textfd);
+	//fputc(c, textfd);
 	//printf("%02x ", c);
     }
     printf("\n");
     fclose(imgfd);
-    fclose(textfd);
+    //fclose(textfd);
     return n;
 }
 
