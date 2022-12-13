@@ -11,17 +11,57 @@
 
 const char *get_cmd = "GET";
 const char *post_cmd = "POST";
+
+void split(char *buf, char *tmp) {
+    int i = 0;
+    for(;buf[i] != '\"'; i++) {
+        tmp[i] = buf[i];
+    }
+    strcat(tmp, "</br>");
+    i += 5;
+    int k = i + 2;
+    for(; buf[k] != '\"'; i++) {
+        tmp[i] = buf[k];
+	k++;
+    }
+    strcat(tmp, "</br>\r\n\0");
+}
+
+void read_database(char *text) {
+    fprintf(stderr, "test database\n");
+    FILE *database = fopen("Text/text.txt", "r");
+    char buf[4][512];
+    int num = 0;
+    int n = 4;
+    while(fgets(buf[num], 512, database) != NULL) {
+        num = (num  + 1) % 4;
+        if(n != 0)
+		n -= 1;
+    }
+    num = (num + n) % 4;
+    for(; n != 4; n++) {
+        char tmp[512];
+	memset(tmp, 0, 512);
+        split(&buf[num][6], tmp);
+        strcat(text, tmp);
+        num = (num + 1) % 4;
+    }
+}
 void read_file(char *text, char *filename) {
     char buf[512];
     memset(buf, 0, sizeof(buf));
     FILE *headerfd = fopen(filename, "r");
-    printf("open %s success ", filename);
+    fprintf(stderr, "open %s\nsuccess\n", filename);
     while(fgets(buf, 512, headerfd) != NULL) {
         //strcat(buf, "\r\n\0");
         strcat(text, buf);
+	//fprintf(stderr, "%s %d\n\n", buf, strlen(buf));
+        if(strncmp(buf,"    <div id=\"text\">", 16) == 0) {
+            read_database(text);
+        }
     }
     //strcat(text, "\r\n");
-    printf("%s success\n", filename);
+    fprintf(stderr, "%s\nsuccess\n", filename);
     fclose(headerfd);
 }
 
@@ -90,10 +130,13 @@ void write_to_text(int newsock, char* buf, char *filename) {
     buf = strtok(buf, "\n");
     bool istext = false;
     while(buf != NULL) {
-	if(strncmp(buf, "text", 4) == 0)
-	    istext = true;
-        if(istext)
-	    write_text(&buf[4], filename);
+	if(istext && buf[0] != 13) {
+		write_text(buf, filename);
+		write_text("\n", filename);
+		fprintf(stderr, "write string %s %d\n", filename, buf[0]);
+	}
+	if(strncmp(buf, "Accept-Language", 15) == 0)
+		istext = true;
         buf = strtok(NULL, "\n");
     }
     char response[512];
@@ -102,10 +145,10 @@ void write_to_text(int newsock, char* buf, char *filename) {
     strcat(response, "\r\n");
     int k;
     if((k = send(newsock, response, strlen(response), 0)) < 0) {
-        fprintf(stderr, "can't send img\n");
+        fprintf(stderr, "can't send response\n");
         return;
     }
-    printf(" send\n %s\n", response);
+    printf("send\n%s\n", response);
 }
 
 void get(int newsock, char *buf) {

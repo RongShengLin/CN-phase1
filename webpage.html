@@ -7,6 +7,36 @@
     </title>
     <link rel="icon" href="Image/icon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="Image/icon.ico" type="image/x-icon">
+
+    <script>
+        window.onload = function() {
+            var Input = document.getElementById("in");
+            var String = document.getElementById("text");
+            var but = document.getElementById("post");
+            but.onclick = function() {
+                if(Input.value) {
+                    var time = document.createElement("div");
+                    var date = new Date();
+                    time.innerHTML = date.toString();
+                    String.appendChild(time);
+
+                    var meg = document.createElement("div");
+                    meg.innerHTML = Input.value;
+	            var m = Input.value;
+                    Input.value = "";
+                    String.appendChild(meg);
+                    var d = date.toString();
+
+                    fetch('./Text/text.txt', {
+                            method: 'POST',
+                            header: {'Content-Type' : 'text'
+                            },
+			    body: JSON.stringify({d,m})
+                    })
+                }
+            }
+        }
+    </script>
 </head>
 <body>
     <h1>
@@ -33,23 +63,19 @@
         width="320"
        height="320">
     </br>
-    <!--
-    <video src="Video/video.mp4"
-        controls
-        width="384"
-        height="216">
-    </video>
-    -->
     </br>
-    <form action="./Text/test.txt" method="post" accept-charset="utf-8" target="empty">
-        <p>write something here</p>
-        <p><textarea name="text" row="25" cols="100" maxlength="64" ></textarea></p>
-        <p><input type="submit" value="send"></p>
-    </form>
+    <div>
+    <div id="text">
+    </div>
+    </br>
+    <input id="in" type="text"><button id = "post">send</button>
+    </div>
+
     <iframe id="empty" name="empty" src="about:blank" style="display:none"></iframe>
+
     <H2>Demo gif</H2>
     <figure>
         <img src="https://i.imgur.com/hAkzFAs.gif">
     </figure>
-    
+
 </body>
