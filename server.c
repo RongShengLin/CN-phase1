@@ -8,9 +8,13 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <stdbool.h>
+#include <openssl/ssl.h>
 
 const char *get_cmd = "GET";
 const char *post_cmd = "POST";
+SSL_CTX *ctx;
+SSL *ssl;
+
 
 void split(char *buf, char *tmp) {
     int i = 0;
@@ -84,7 +88,7 @@ void sendhtml(int newsock) {
     strcat(text, "\r\n");
     read_file(text, "webpage.html");
     int k;
-    if((k = send(newsock, text, strlen(text), 0)) < 0) {
+    if((k = SSL_write(ssl, text, strlen(text))) < 0) {
         fprintf(stderr, "can't send\n");
         return;
     }
@@ -97,11 +101,11 @@ int read_img(char *text, char *filename) {
     int c;
     int n = strlen(text);
     while((c = fgetc(imgfd)) != EOF) {
-	text[n] = c;
-	text[n + 1] = '\0';
-	n++;
-	//fputc(c, textfd);
-	//printf("%02x ", c);
+        text[n] = c;
+        text[n + 1] = '\0';
+        n++;
+        //fputc(c, textfd);
+        //printf("%02x ", c);
     }
     printf("\n");
     fclose(imgfd);
@@ -119,9 +123,9 @@ void sendimg(int newsock, char *s) {
     int n = read_img(text, s);
     printf("n = %d\n", n);
     int k;
-    if((k = send(newsock, text, n, 0)) < 0) {
-	fprintf(stderr, "can't send img\n");
-	return;
+    if((k = SSL_write(ssl, text, n)) < 0) {
+        fprintf(stderr, "can't send img\n");
+        return;
     }
     printf("send %d %ld\n%s\n", k, strlen(text), text);
 }
@@ -144,7 +148,7 @@ void write_to_text(int newsock, char* buf, char *filename) {
     read_file(response, "post_head");
     strcat(response, "\r\n");
     int k;
-    if((k = send(newsock, response, strlen(response), 0)) < 0) {
+    if((k = SSL_write(ssl, response, strlen(response))) < 0) {
         fprintf(stderr, "can't send response\n");
         return;
     }
@@ -172,7 +176,21 @@ void post(int newsock, char *buf) {
     }
 }
 
+void ssl_init() {
+    SSL_library_init();
+    ctx = SSL_CTX_new(SSLv23_server_method());
+    SSL_CTX_set_ecdh_auto(ctx, 1);
+    SSL_CTX_use_certificate_file(ctx, "server.crt", SSL_FILETYPE_PEM);
+    SSL_CTX_use_PrivateKey_file(ctx, "server.key", SSL_FILETYPE_PEM);
+    if(!SSL_CTX_check_private_key(ctx)) {
+        fprintf(stderr, "key wrong\n");
+        exit(0);
+    }
+
+}
+
 int main() {
+    ssl_init();
     int port_num = 7891;
     struct sockaddr_in sock_addr;
     int sockfd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -234,18 +252,24 @@ int main() {
         }
         else {
             printf("accept\n");
+            ssl = SSL_new(ctx);
+            SSL_set_fd(ssl, newsock);
+            int acc = SSL_accept(ssl);
+	    if(acc < 0) {
+		fprintf(stderr, "error");
+		exit(0);
+	    }
         }
-        const void *msg = "send something here\n";
         char buf[4096];
         int n;
-        while((n = recv(newsock, (void *)buf, sizeof(buf), 0)) != 0) {
+        while((n = SSL_read(ssl, buf, sizeof(buf)) != 0)) {
             if(n < 0) {
                 fprintf(stderr, "can't recv\n");
                 break;
             }
             else if(n > 0) {
                 buf[n] = '\0';
-                printf("%s\n", buf);
+                printf("%d %d %s\n", n, buf[0], buf);
             }
             if(strncmp(buf, get_cmd, 3) == 0) {
                 get(newsock, &buf[3]);
@@ -257,8 +281,10 @@ int main() {
             }
         }
         shutdown(newsock, SHUT_RDWR);
+        SSL_free(ssl);
         close(newsock);
     }
+    SSL_CTX_free(ctx);
 }
 
 
