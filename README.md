@@ -1,7 +1,7 @@
 # CN-phase1    
 This is for CN phase1
 ## Compile  
-### use "gcc server.c -o server" to compile  
+### use "gcc server.c -o server" or "make server"to compile  
 ## Run  
 ### use "./server" to run
 ### There is a IP and Port Num in third line(it may be Private IP, not Public IP.If it is Private IP, then we can connect to webpage via this IP)
