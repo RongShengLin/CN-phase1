@@ -147,6 +147,23 @@ void sendvid(int newsock, char *s) {
     free(text);
 }
 
+void sendaud(int newsock, char *s) {
+    char *text = (char *)malloc(1000000);
+    memset(text, 0, sizeof(text));
+    read_file(text, "audio_head");
+    text[strlen(text) - 1] = '\0';
+    strcat(text, s);
+    strcat(text, "\r\n\n");
+    int n = read_img(text, s);
+    int k;
+    if((k = send(newsock, (const void *) text, n, 0)) < 0) {
+	fprintf(stderr, "can't send audio\n");
+	return;
+    }
+    fprintf(stderr, "send %d %ld\n%s\n", k, strlen(text), text);
+    free(text);
+}
+
 void write_to_text(int newsock, char* buf, char *filename) {
     buf = strtok(buf, "\n");
     bool istext = false;
@@ -183,6 +200,9 @@ void get(int newsock, char *buf) {
     }
     else if(strncmp(s, "/Video", 6) == 0) {
         sendvid(newsock, &s[1]);
+    }
+    else if(strncmp(s, "/Audio", 6) == 0) {
+	sendaud(newsock, &s[1]);
     }
 }
 

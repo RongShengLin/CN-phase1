@@ -78,7 +78,7 @@
         <img src="https://i.imgur.com/hAkzFAs.gif">
     </figure>
 
-    <video controls width="300" height="200" id = "video" src="./Video/video.m3u8" type="application/x-mpegURL">
+    <video controls width="300" height="200" id = "video" src="./Video/video.m3u8" type="application/x-mpegURL"></video>
     <script>
         if(Hls.isSupported()) {
             const video = document.getElementById("video");
@@ -92,5 +92,15 @@
         else {
             console.log("not support\n");
         }
+    </script>
+    </br>
+    <audio controls src="./Audio/audio.m3u8" type="application/x-mpegURL" id="audio"></audio>
+    <script>
+	if(Hls.isSupported()) {
+	    const audio = document.getElementById("audio");
+	    const hls2 = new Hls();
+	    hls2.loadSource("./Audio/audio.m3u8");
+	    hls2.attachMedia(audio);
+	}
     </script>
 </body>
