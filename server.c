@@ -8,12 +8,12 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <stdbool.h>
-#include <openssl/ssl.h>
+//#include <openssl/ssl.h>
 
 const char *get_cmd = "GET";
 const char *post_cmd = "POST";
-SSL_CTX *ctx;
-SSL *ssl;
+/*SSL_CTX *ctx;
+SSL *ssl;*/
 
 
 void split(char *buf, char *tmp) {
@@ -88,7 +88,7 @@ void sendhtml(int newsock) {
     strcat(text, "\r\n");
     read_file(text, "webpage.html");
     int k;
-    if((k = SSL_write(ssl, text, strlen(text))) < 0) {
+    if((k = send(newsock, (const void *)text, strlen(text), 0)) < 0) {
         fprintf(stderr, "can't send\n");
         return;
     }
@@ -123,11 +123,28 @@ void sendimg(int newsock, char *s) {
     int n = read_img(text, s);
     printf("n = %d\n", n);
     int k;
-    if((k = SSL_write(ssl, text, n)) < 0) {
+    if((k = send(newsock, (const void *)text, n, 0)) < 0) {
         fprintf(stderr, "can't send img\n");
         return;
     }
     printf("send %d %ld\n%s\n", k, strlen(text), text);
+}
+
+void sendvid(int newsock, char *s) {
+    char *text = (char *)malloc(100000000);
+    memset(text, 0, sizeof(text));
+    read_file(text, "video_head");
+    text[strlen(text) - 1] = '\0';
+    strcat(text, s);
+    strcat(text, "\r\n\n");
+    int n = read_img(text, s);
+    int k;
+    if((k = send(newsock, (const void *)text, n, 0)) < 0) {
+        fprintf(stderr, "can't send video\n");
+        return;
+    }
+    fprintf(stderr, "send %d %ld\n%s\n", k, strlen(text), text);
+    free(text);
 }
 
 void write_to_text(int newsock, char* buf, char *filename) {
@@ -148,7 +165,7 @@ void write_to_text(int newsock, char* buf, char *filename) {
     read_file(response, "post_head");
     strcat(response, "\r\n");
     int k;
-    if((k = SSL_write(ssl, response, strlen(response))) < 0) {
+    if((k = send(newsock, (const void *)response, strlen(response), 0)) < 0) {
         fprintf(stderr, "can't send response\n");
         return;
     }
@@ -164,6 +181,9 @@ void get(int newsock, char *buf) {
     else if(strncmp(s, "/Image", 6) == 0){
         sendimg(newsock, &s[1]);
     }
+    else if(strncmp(s, "/Video", 6) == 0) {
+        sendvid(newsock, &s[1]);
+    }
 }
 
 void post(int newsock, char *buf) {
@@ -176,7 +196,7 @@ void post(int newsock, char *buf) {
     }
 }
 
-void ssl_init() {
+/*void ssl_init() {
     SSL_library_init();
     ctx = SSL_CTX_new(SSLv23_server_method());
     SSL_CTX_set_ecdh_auto(ctx, 1);
@@ -187,10 +207,10 @@ void ssl_init() {
         exit(0);
     }
 
-}
+}*/
 
 int main() {
-    ssl_init();
+    //ssl_init();
     int port_num = 7891;
     struct sockaddr_in sock_addr;
     int sockfd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -252,24 +272,24 @@ int main() {
         }
         else {
             printf("accept\n");
-            ssl = SSL_new(ctx);
+            /*ssl = SSL_new(ctx);
             SSL_set_fd(ssl, newsock);
             int acc = SSL_accept(ssl);
-	    if(acc < 0) {
-		fprintf(stderr, "error");
-		exit(0);
-	    }
+            if(acc < 0) {
+                fprintf(stderr, "error");
+                exit(0);
+            }*/
         }
         char buf[4096];
         int n;
-        while((n = SSL_read(ssl, buf, sizeof(buf)) != 0)) {
+        while((n = recv(newsock, (void *)buf, sizeof(buf), 0)) != 0) {
             if(n < 0) {
                 fprintf(stderr, "can't recv\n");
                 break;
             }
             else if(n > 0) {
                 buf[n] = '\0';
-                printf("%d %d %s\n", n, buf[0], buf);
+                fprintf(stderr, "%d %s\n", n, buf);
             }
             if(strncmp(buf, get_cmd, 3) == 0) {
                 get(newsock, &buf[3]);
@@ -281,10 +301,10 @@ int main() {
             }
         }
         shutdown(newsock, SHUT_RDWR);
-        SSL_free(ssl);
+        //SSL_free(ssl);
         close(newsock);
     }
-    SSL_CTX_free(ctx);
+    //SSL_CTX_free(ctx);
 }
 
 
