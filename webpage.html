@@ -39,26 +39,21 @@
     </script>
 </head>
 <body>
-    <video controls width="1500" height="1000" id = "video" src="./Video/video.m3u8" type="application/x-mpegURL"></video>
+    <video controls width="1200" height="800" id = "video" src="./Video/video.m3u8" type="application/x-mpegURL"></video>
     <audio controls src="./Audio/audio.m3u8" type="application/x-mpegURL" id="audio"></audio>
     <h1>
-        This&nbspis&nbspa&nbspdemo&nbspwebpage
+        CN project webpage 
     </h1>
+
     <h2>
-        name:Lin-Rong-Sheng</br>
-        ID:b09902117</br>
-        Department:CSIE junior
-    </h2>
-    <h1>
-        此為測試網頁
-    </h1>
-    <h2>
-        姓名:林榮盛</br>
-        學號:b09902117</br>
+        姓名:林榮盛/李奕辰</br>
+        學號:b09902117/b09902001</br>
         系級:資工三
     </h2>
     <h2>
-        <a href="https://github.com/RongShengLin">Github</a>
+        Github
+        <a href="https://github.com/RongShengLin">林榮盛</a>
+        <a href="https://github.com/Yi-Chen-Lee">李奕辰</a>
     </h2>
     <img src="Image/img.png"
         alt = "test"
@@ -85,7 +80,8 @@
             const hls = new Hls();
             hls.loadSource("./Video/video.m3u8");
             hls.attachMedia(video);
-            hls.on(Hls.Events.MENIFEST_PARSED, function() {
+            hls.on(Hls.Events.MEDIA_ATTACHED, function() {
+                video.muted = true;
                 video.play();
             });
         }

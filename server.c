@@ -12,6 +12,18 @@
 
 const char *get_cmd = "GET";
 const char *post_cmd = "POST";
+const char *header =  "HTTP/1.1 200 OK\r\n"
+                       "Connection:keep-alive\r\n"
+                       "Content-Type:text/html; charset=utf-8\r\n"
+                       "Content-disposition:inline; filename=\"Image/icon.ico\"\r\n";
+const char *img_head = "HTTP/1.1 200 OK\r\n"
+                        "Content-Type: image/*\r\n"
+                        "Content-Location:\r\n";
+const char *post_head = "HTTP/1.1 200 OK\r\n";
+
+const char *aud_vid_head = "HTTP/1.1 200 OK\r\n"
+                          "Content-Type: application/x-mpegURL\r\n"
+                          "Content-Location:\r\n";
 
 /*SSL_CTX *ctx;
 SSL *ssl;*/
@@ -85,7 +97,7 @@ void write_text(char *text, char *filename) {
 void sendhtml(int newsock) {
     char text[10000];
     memset(text, 0, sizeof(text));
-    read_file(text, "header");
+    strcpy(text, header);
     strcat(text, "\r\n");
     read_file(text, "webpage.html");
     int k;
@@ -116,9 +128,7 @@ int read_img(char *text, char *filename) {
 
 void sendimg(int newsock, char *s) {
     char text[50000];
-    memset(text, 0, sizeof(text));
-    read_file(text,"img_head");
-    text[strlen(text) - 1] = '\0';
+    strcpy(text, img_head);
     strcat(text, s);
     strcat(text, "\r\n\n");
     int n = read_img(text, s);
@@ -131,11 +141,9 @@ void sendimg(int newsock, char *s) {
     printf("send %d %ld\n%s\n", k, strlen(text), text);
 }
 
-void sendvid(int newsock, char *s) {
+void sendaud_vid(int newsock, char *s) {
     char *text = (char *)malloc(100000000);
-    memset(text, 0, sizeof(text));
-    read_file(text, "video_head");
-    text[strlen(text) - 1] = '\0';
+    strcpy(text, aud_vid_head);
     strcat(text, s);
     strcat(text, "\r\n\n");
     int n = read_img(text, s);
@@ -143,23 +151,6 @@ void sendvid(int newsock, char *s) {
     if((k = send(newsock, (const void *)text, n, 0)) < 0) {
         fprintf(stderr, "can't send video\n");
         return;
-    }
-    fprintf(stderr, "send %d %ld\n%s\n", k, strlen(text), text);
-    free(text);
-}
-
-void sendaud(int newsock, char *s) {
-    char *text = (char *)malloc(1000000);
-    memset(text, 0, sizeof(text));
-    read_file(text, "audio_head");
-    text[strlen(text) - 1] = '\0';
-    strcat(text, s);
-    strcat(text, "\r\n\n");
-    int n = read_img(text, s);
-    int k;
-    if((k = send(newsock, (const void *) text, n, 0)) < 0) {
-	fprintf(stderr, "can't send audio\n");
-	return;
     }
     fprintf(stderr, "send %d %ld\n%s\n", k, strlen(text), text);
     free(text);
@@ -179,8 +170,7 @@ void write_to_text(int newsock, char* buf, char *filename) {
         buf = strtok(NULL, "\n");
     }
     char response[512];
-    memset(response, 0, sizeof(response));
-    read_file(response, "post_head");
+    strcpy(response, post_head);
     strcat(response, "\r\n");
     int k;
     if((k = send(newsock, (const void *)response, strlen(response), 0)) < 0) {
@@ -199,11 +189,8 @@ void get(int newsock, char *buf) {
     else if(strncmp(s, "/Image", 6) == 0){
         sendimg(newsock, &s[1]);
     }
-    else if(strncmp(s, "/Video", 6) == 0) {
-        sendvid(newsock, &s[1]);
-    }
-    else if(strncmp(s, "/Audio", 6) == 0) {
-	sendaud(newsock, &s[1]);
+    else if(strncmp(s, "/Video", 6) == 0 || strncmp(s, "/Audio", 6) == 0) {
+        sendaud_vid(newsock, &s[1]);
     }
 }
 
