@@ -22,7 +22,7 @@
 
                     var meg = document.createElement("div");
                     meg.innerHTML = Input.value;
-	            var m = Input.value;
+	                var m = Input.value;
                     Input.value = "";
                     String.appendChild(meg);
                     var d = date.toString();
@@ -40,23 +40,17 @@
 </head>
 <body>
     <h1>
-        This&nbspis&nbspa&nbspdemo&nbspwebpage
+        CN Project webpage
     </h1>
     <h2>
-        name:Lin-Rong-Sheng</br>
-        ID:b09902117</br>
-        Department:CSIE junior
-    </h2>
-    <h1>
-        此為測試網頁
-    </h1>
-    <h2>
-        姓名:林榮盛</br>
-        學號:b09902117</br>
+        姓名:林榮盛/李奕辰</br>
+        學號:b09902117/b09902001</br>
         系級:資工三
     </h2>
     <h2>
-        <a href="https://github.com/RongShengLin">Github</a>
+        Github
+        <a href="https://youtu.be/uoqJy_AEt-E">林榮盛</a>
+        <a href="https://youtu.be/nKdNoUmb9K4">李奕辰</a>
     </h2>
     <img src="Image/img.png"
         alt = "test"
@@ -85,7 +79,8 @@
             const hls = new Hls();
             hls.loadSource("./Video/video.m3u8");
             hls.attachMedia(video);
-            hls.on(Hls.Events.MENIFEST_PARSED, function() {
+            hls.on(Hls.Events.MEDIA_ATTACHED, function() {
+                video.muted = true;
                 video.play();
             });
         }
@@ -101,6 +96,9 @@
 	    const hls2 = new Hls();
 	    hls2.loadSource("./Audio/audio.m3u8");
 	    hls2.attachMedia(audio);
+        hls.on(Hls.Events.MEDIA_ATTACHED, function() {
+            audio.play();
+        });
 	}
     </script>
 </body>

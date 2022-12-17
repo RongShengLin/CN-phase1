@@ -12,6 +12,7 @@
 
 const char *get_cmd = "GET";
 const char *post_cmd = "POST";
+
 /*SSL_CTX *ctx;
 SSL *ssl;*/
 
@@ -326,5 +327,4 @@ int main() {
     }
     //SSL_CTX_free(ctx);
 }
-
 
