@@ -1,5 +1,5 @@
-# CN-phase1    
-This is for CN phase1
+# CN-phase2    
+This is for CN phase2
 ## member
 ### b09902117 林榮盛
 ### b09902001 李奕辰
